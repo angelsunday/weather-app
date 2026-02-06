@@ -15,6 +15,8 @@ const loadingEl = document.querySelector(".loading");
 const celsiusBtn = document.getElementById("celsiusBtn");
 const fahrenheitBtn = document.getElementById("fahrenheitBtn");
 
+const weatherContainer = document.querySelector(".weather");
+
 celsiusBtn.addEventListener("click", () => setUnit("C"));
 fahrenheitBtn.addEventListener("click", () => setUnit("F"));
 
@@ -61,17 +63,20 @@ async function getWeather() {
 function updateUI(data, city, country) {
   const weatherCode = data.current.weather_code;
 
-  cityEl.textContent = `${city}, ${country}`;
-  currentTempC = data.current.temperature_2m;
-  updateTemperature();
-  descEl.textContent = getWeatherDescription(weatherCode);
-  humidityEl.textContent = data.current.relative_humidity_2m;
-  windEl.textContent = Math.round(data.current.wind_speed_10m);
+  animateWeatherUpdate(() => {
+    cityEl.textContent = `${city}, ${country}`;
+    
+    currentTempC = data.current.temperature_2m;
+    updateTemperature();
+    
+    descEl.textContent = getWeatherDescription(weatherCode);
+    humidityEl.textContent = data.current.relative_humidity_2m;
+    windEl.textContent = Math.round(data.current.wind_speed_10m);
 
-  iconEl.src = getWeatherIcon(weatherCode);
-  iconEl.alt = descEl.textContent;
+    updateIcon(getWeatherIcon(weatherCode), descEl.textContent);
 
-  setBackgroundImage(weatherCode);
+    setBackgroundImage(weatherCode);
+  });
 }
 
 function showError(message) {
@@ -156,4 +161,52 @@ function setUnit(unit) {
 
   celsiusBtn.classList.toggle("active", unit === "C");
   fahrenheitBtn.classList.toggle("active", unit === "F");
+}
+
+function animateWeatherUpdate(callback){
+  weatherContainer.classList.add("fade-out");
+
+  setTimeout(() => {
+    callback();
+    weatherContainer.classList.remove("fade-out");
+    weatherContainer.classList.add("fade-in");
+  }, 300);
+}
+
+function animateNumber(el, start, end, unit = ""){
+  const duration = 400;
+  const startTime = performance.now();
+
+  function update(time) {
+    const progress = Math.min((time - startTime) / duration, 1);
+    const value = Math.round(start + (end - start) * progress);
+    el.textContent = `${value}${unit}`;
+
+    if (progress < 1) requestAnimationFrame(update);
+  }
+
+  requestAnimationFrame(update);
+}
+
+function updateTemperature() {
+  if (currentTempC === null) return;
+
+  const target = 
+    currentUnit === "C"
+      ? Math.round(currentTempC)
+      : Math.round(currentTempC * 9 /5 +32);
+  
+  const current = parseInt(tempEl.textContent) || target;
+
+  animateNumber(tempEl, current, target, `°${currentUnit}`);
+}
+
+function updateIcon(src, alt){
+  iconEl.classList.add("fade");
+
+  setTimeout(() => {
+    iconEl.src = src;
+    iconEl.alt = alt;
+    iconEl.classList.remove("fade");
+  }, 200);
 }

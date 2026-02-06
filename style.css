@@ -85,12 +85,28 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.weather.fade-out {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.weather.fade-in {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .weather-icon {
   width: 80px;
-  height: 80px;
   margin: 0.5rem auto;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.weather-icon.fade{
+  opacity: 0;
+  transform: scale(0.9);
 }
 
 /*CITY*/
