@@ -1,0 +1,104 @@
+const cityInput = document.getElementById("cityInput");
+const searchBtn = document.getElementById("searchBtn");
+
+const cityEl = document.querySelector(".city");
+const tempEl = document.querySelector(".temp");
+const descEl = document.querySelector(".description");
+const humidityEl = document.querySelector(".humidity");
+const windEl = document.querySelector(".wind");
+const iconEl = document.querySelector(".weather-icon");
+
+searchBtn.addEventListener("click", getWeather);
+cityInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") getWeather();
+});
+
+async function getWeather() {
+  const city = cityInput.value.trim();
+  if (!city) return;
+
+  try {
+    const geoRes = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`
+    );
+
+    if (!geoRes.ok) throw new Error("Location not found");
+
+    const geoData = await geoRes.json();
+    if (!geoData.results) throw new Error("City not found");
+
+    const { latitude, longitude, name, country } = geoData.results[0];
+
+    const weatherRes = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code`
+    );
+
+    if (!weatherRes.ok) throw new Error("Weather data unavailable");
+
+    const weatherData = await weatherRes.json();
+    updateUI(weatherData, name, country);
+
+  } catch (error) {
+    showError(error.message);
+  }
+}
+
+function updateUI(data, city, country) {
+  const weatherCode = data.current.weather_code;
+
+  cityEl.textContent = `${city}, ${country}`;
+  tempEl.textContent = `${Math.round(data.current.temperature_2m)} °C`;
+  descEl.textContent = getWeatherDescription(weatherCode);
+  humidityEl.textContent = data.current.relative_humidity_2m;
+  windEl.textContent = Math.round(data.current.wind_speed_10m);
+
+  iconEl.src = getWeatherIcon(weatherCode);
+  iconEl.alt = descEl.textContent;
+}
+
+function showError(message) {
+  cityEl.textContent = "Error";
+  tempEl.textContent = "-- °C";
+  descEl.textContent = message;
+  humidityEl.textContent = "--";
+  windEl.textContent = "--";
+  iconEl.src = "";
+}
+
+function getWeatherDescription(code) {
+  const map = {
+    0: "Clear sky",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Cloudy",
+    45: "Fog",
+    48: "Depositing rime fog",
+    51: "Light drizzle",
+    53: "Moderate drizzle",
+    55: "Dense drizzle",
+    61: "Slight rain",
+    63: "Moderate rain",
+    65: "Heavy rain",
+    71: "Slight snow",
+    73: "Moderate snow",
+    75: "Heavy snow",
+    80: "Rain showers",
+    95: "Thunderstorm"
+  };
+
+  return map[code] || "Unknown Weather";
+}
+
+function getWeatherIcon(weatherCode) {
+  if (weatherCode === 0) return "assets/icons/clear.png";
+  if (weatherCode <= 2) return "assets/icons/overcast.png";
+  if (weatherCode === 3) return "assets/icons/cloudy.png";
+  if (weatherCode === 45 || weatherCode === 48) return "assets/icons/fog.png";
+  if (weatherCode >= 51 && weatherCode <= 55) return "assets/icons/drizzle.png";
+  if (weatherCode >= 61 && weatherCode <= 65) return "assets/icons/rain.png";
+  if (weatherCode >= 71 && weatherCode <= 75) return "assets/icons/snow.png";
+  if (weatherCode >= 80 && weatherCode <= 82) return "assets/icons/rain.png";
+  if (weatherCode >= 95) return "assets/icons/thunder.png";
+
+  return "assets/icons/unknown.png";
+}
