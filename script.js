@@ -1,3 +1,6 @@
+let currentTempC = null;
+let currentUnit = "C";
+
 const cityInput = document.getElementById("cityInput");
 const searchBtn = document.getElementById("searchBtn");
 
@@ -8,6 +11,12 @@ const humidityEl = document.querySelector(".humidity");
 const windEl = document.querySelector(".wind");
 const iconEl = document.querySelector(".weather-icon");
 const loadingEl = document.querySelector(".loading");
+
+const celsiusBtn = document.getElementById("celsiusBtn");
+const fahrenheitBtn = document.getElementById("fahrenheitBtn");
+
+celsiusBtn.addEventListener("click", () => setUnit("C"));
+fahrenheitBtn.addEventListener("click", () => setUnit("F"));
 
 searchBtn.addEventListener("click", getWeather);
 cityInput.addEventListener("keypress", (e) => {
@@ -53,7 +62,8 @@ function updateUI(data, city, country) {
   const weatherCode = data.current.weather_code;
 
   cityEl.textContent = `${city}, ${country}`;
-  tempEl.textContent = `${Math.round(data.current.temperature_2m)} °C`;
+  currentTempC = data.current.temperature_2m;
+  updateTemperature();
   descEl.textContent = getWeatherDescription(weatherCode);
   humidityEl.textContent = data.current.relative_humidity_2m;
   windEl.textContent = Math.round(data.current.wind_speed_10m);
@@ -125,4 +135,25 @@ function setBackgroundImage(weatherCode) {
   else if (weatherCode >= 95) bg = "assets/images/thunder.jpg";
 
   document.body.style.backgroundImage = `url("${bg}")`;
+}
+
+function updateTemperature(){
+  if (currentTempC === null) return;
+
+  if (currentUnit === "C") {
+    tempEl.textContent = `${Math.round(currentTempC)} °C`;
+  } else {
+    const tempF = currentTempC * 9 / 5 + 32;
+    tempEl.textContent = `${Math.round(tempF)}`;
+  }
+}
+
+currentUnit = localStorage.getItem("unit") || "C";
+
+function setUnit(unit) {
+  currentUnit = unit;
+  updateTemperature();
+
+  celsiusBtn.classList.toggle("active", unit === "C");
+  fahrenheitBtn.classList.toggle("active", unit === "F");
 }
