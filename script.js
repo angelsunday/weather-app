@@ -7,6 +7,7 @@ const descEl = document.querySelector(".description");
 const humidityEl = document.querySelector(".humidity");
 const windEl = document.querySelector(".wind");
 const iconEl = document.querySelector(".weather-icon");
+const loadingEl = document.querySelector(".loading");
 
 searchBtn.addEventListener("click", getWeather);
 cityInput.addEventListener("keypress", (e) => {
@@ -17,7 +18,9 @@ async function getWeather() {
   const city = cityInput.value.trim();
   if (!city) return;
 
+  loadingEl.computedStyleMap.display = "block"; //show loading
   try {
+    //geocoding
     const geoRes = await fetch(
       `https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`
     );
@@ -29,6 +32,7 @@ async function getWeather() {
 
     const { latitude, longitude, name, country } = geoData.results[0];
 
+    //Weather data
     const weatherRes = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code`
     );
@@ -40,6 +44,8 @@ async function getWeather() {
 
   } catch (error) {
     showError(error.message);
+  }finally {
+    loadingEl.computedStyleMap.display="none"; //hide loading
   }
 }
 
@@ -54,6 +60,8 @@ function updateUI(data, city, country) {
 
   iconEl.src = getWeatherIcon(weatherCode);
   iconEl.alt = descEl.textContent;
+
+  setBackgroundImage(weatherCode);
 }
 
 function showError(message) {
@@ -101,4 +109,20 @@ function getWeatherIcon(weatherCode) {
   if (weatherCode >= 95) return "assets/icons/thunder.png";
 
   return "assets/icons/unknown.png";
+}
+
+//Weather Background
+function setBackgroundImage(weatherCode) {
+  let bg = "assets/backgrounds/default.jpg";
+
+  if (weatherCode === 0) bg = "assets/images/sunny.jpg";
+  else if (weatherCode <= 2) bg = "assets/images/overcast.jpg";
+  else if (weatherCode <= 3) bg = "assets/images/cloudy.jpg";
+  else if (weatherCode === 45 || weatherCode === 48) bg = "assets/images/fog.jpg";
+  else if (weatherCode >= 51 && weatherCode <= 65) bg = "assets/images/drizzle.jpg";
+  else if (weatherCode >= 71 && weatherCode <= 75) bg = "assets/images/snow.jpg";
+  else if (weatherCode >= 80 && weatherCode <= 82) bg = "assets/images/rain.jpg";
+  else if (weatherCode >= 95) bg = "assets/images/thunder.jpg";
+
+  document.body.style.backgroundImage = `url("${bg}")`;
 }
