@@ -154,6 +154,8 @@ body {
  border-radius: 50%;
  animation: spin 1s linear infinite;
  margin: 1rem auto;
+ text-indent: -9999px;
+ overflow: hidden;
 }
 
 @keyframes spin {

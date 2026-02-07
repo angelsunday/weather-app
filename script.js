@@ -1,5 +1,6 @@
 let currentTempC = null;
 let currentUnit = "C";
+let currentFeelsLikeC = null;
 
 const cityInput = document.getElementById("cityInput");
 const searchBtn = document.getElementById("searchBtn");
@@ -16,6 +17,7 @@ const celsiusBtn = document.getElementById("celsiusBtn");
 const fahrenheitBtn = document.getElementById("fahrenheitBtn");
 
 const weatherContainer = document.querySelector(".weather");
+const feelsLikeEl = document.querySelector(".feels-like");
 
 celsiusBtn.addEventListener("click", () => setUnit("C"));
 fahrenheitBtn.addEventListener("click", () => setUnit("F"));
@@ -29,7 +31,7 @@ async function getWeather() {
   const city = cityInput.value.trim();
   if (!city) return;
 
-  loadingEl.computedStyleMap.display = "block"; //show loading
+  loadingEl.style.display = "block"; //show loading
   try {
     //geocoding
     const geoRes = await fetch(
@@ -43,9 +45,12 @@ async function getWeather() {
 
     const { latitude, longitude, name, country } = geoData.results[0];
 
+   
+   
+
     //Weather data
-    const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code`
+   const weatherRes = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code`
     );
 
     if (!weatherRes.ok) throw new Error("Weather data unavailable");
@@ -56,7 +61,7 @@ async function getWeather() {
   } catch (error) {
     showError(error.message);
   }finally {
-    loadingEl.computedStyleMap.display="none"; //hide loading
+    loadingEl.style.display="none"; //hide loading
   }
 }
 
@@ -67,7 +72,10 @@ function updateUI(data, city, country) {
     cityEl.textContent = `${city}, ${country}`;
     
     currentTempC = data.current.temperature_2m;
+    currentFeelsLikeC = data.current.apparent_temperature;
+
     updateTemperature();
+    updateFeelsLike();
     
     descEl.textContent = getWeatherDescription(weatherCode);
     humidityEl.textContent = data.current.relative_humidity_2m;
@@ -82,6 +90,7 @@ function updateUI(data, city, country) {
 function showError(message) {
   cityEl.textContent = "Error";
   tempEl.textContent = "-- °C";
+  feelsLikeEl.textContent = "--";
   descEl.textContent = message;
   humidityEl.textContent = "--";
   windEl.textContent = "--";
@@ -142,22 +151,24 @@ function setBackgroundImage(weatherCode) {
   document.body.style.backgroundImage = `url("${bg}")`;
 }
 
-function updateTemperature(){
-  if (currentTempC === null) return;
+// function updateTemperature(){
+//   if (currentTempC === null) return;
 
-  if (currentUnit === "C") {
-    tempEl.textContent = `${Math.round(currentTempC)} °C`;
-  } else {
-    const tempF = currentTempC * 9 / 5 + 32;
-    tempEl.textContent = `${Math.round(tempF)}`;
-  }
-}
+//   if (currentUnit === "C") {
+//     tempEl.textContent = `${Math.round(currentTempC)} °C`;
+//   } else {
+//     const tempF = currentTempC * 9 / 5 + 32;
+//     tempEl.textContent = `${Math.round(tempF)}`;
+//   }
+// }
 
 currentUnit = localStorage.getItem("unit") || "C";
 
 function setUnit(unit) {
   currentUnit = unit;
+  localStorage.setItem("unit", unit);
   updateTemperature();
+  updateFeelsLike();
 
   celsiusBtn.classList.toggle("active", unit === "C");
   fahrenheitBtn.classList.toggle("active", unit === "F");
@@ -191,11 +202,11 @@ function animateNumber(el, start, end, unit = ""){
 function updateTemperature() {
   if (currentTempC === null) return;
 
-  const target = 
+  const target =
     currentUnit === "C"
       ? Math.round(currentTempC)
-      : Math.round(currentTempC * 9 /5 +32);
-  
+      : Math.round(currentTempC * 9 / 5 + 32);
+
   const current = parseInt(tempEl.textContent) || target;
 
   animateNumber(tempEl, current, target, `°${currentUnit}`);
@@ -209,4 +220,15 @@ function updateIcon(src, alt){
     iconEl.alt = alt;
     iconEl.classList.remove("fade");
   }, 200);
+}
+
+function updateFeelsLike(){
+  if(currentFeelsLikeC === null) return;
+
+  if(currentUnit === "C") {
+    feelsLikeEl.textContent = Math.round(currentFeelsLikeC);
+  } else {
+    const feelsLikeF = currentFeelsLikeC * 9 / 5 + 32;
+    feelsLikeEl.textContent = Math.round(feelsLikeF);
+  }
 }
