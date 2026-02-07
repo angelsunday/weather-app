@@ -9,7 +9,10 @@
 /* PAGE */
 body {
   margin: 0;
-  padding: 0;
+  padding: env(safe-area-inset-top)
+           env(safe-area-inset-right)
+           env(safe-area-inset-bottom)
+           env(safe-area-inset-left);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   min-height: 100vh;
   display: flex;
@@ -39,7 +42,7 @@ body {
 /*TITLE*/
 .app h1 {
   margin-bottom: 1.5rem;
-  font-size: 1.6rem;
+  font-size: clamp(1.3rem, 4vw, 1.6rem);
 }
 
 /*SEARCH*/
@@ -57,6 +60,7 @@ body {
   border: 3px solid #323e83;
   font-size: 1rem;
   background: transparent;
+  min-height: 44px;
 }
 
 .search input:focus {
@@ -73,6 +77,7 @@ body {
   font-size: 1rem;
   cursor: pointer;
   width:100%;
+  min-height: 44px;
 }
 
 .search button:hover {
@@ -111,27 +116,29 @@ body {
 
 /*CITY*/
 .city {
-  font-size: 1.3rem;
+  font-size: clamp(1.1rem, 4.5vw, 1.4rem);
   font-weight: 600;
   color:#070707;
 }
 
 /*TEMPERATURE*/
 .temp {
-  font-size: 2.5rem;
+  font-size: clamp(2.2rem, 8vw, 2.8rem);
   font-weight: bold;
   color:#070707;
 }
 
 /*DESCRIPTION*/
 .description {
-  text-transform: capitalize;
+  font-size: clamp(0.9rem, 3.5vw, 1rem);
   color: #070707;
 }
 
 /*EXTRA DETAILS*/
 .details {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
   justify-content: space-between;
   margin-top: 1rem;
   font-size: 1rem;
@@ -172,4 +179,25 @@ body {
 .unit-toggle button.active {
   background:#323e83;
   color: #fff;
+}
+
+@media (max-width: 480px) {
+  .app {
+    max-width: 100%;
+    margin: 1rem;
+    padding: 1.5rem;
+    border-radius: 10px;
+  }
+
+  .search {
+    flex-direction: row;
+  }
+
+  body {
+    align-items: flex-start;
+  }
+
+  .app {
+    margin-top: 1rem;
+  }
 }
