@@ -148,7 +148,18 @@ function setBackgroundImage(weatherCode) {
   else if (weatherCode >= 80 && weatherCode <= 82) bg = "assets/images/rain.jpg";
   else if (weatherCode >= 95) bg = "assets/images/thunder.jpg";
 
-  document.body.style.backgroundImage = `url("${bg}")`;
+  const img = new Image();
+  img.src = bg;
+
+  img.onload = () => {
+    document.body.classList.add("bg-fade");
+    document.body.style.setProperty("--next-bg", `url("${bg}")`);
+    document.body.style.backgroundImage = `url("${bg}")`;
+
+    setTimeout(() => {
+      document.body.classList.remove("bg-fade");
+    }, 800);
+  };
 }
 
 // function updateTemperature(){
