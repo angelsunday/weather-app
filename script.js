@@ -2,6 +2,9 @@ let currentTempC = null;
 let currentUnit = "C";
 let currentFeelsLikeC = null;
 
+const sunriseEl = document.querySelector(".sunrise");
+const sunsetEl = document.querySelector(".sunset");
+
 const cityInput = document.getElementById("cityInput");
 const searchBtn = document.getElementById("searchBtn");
 
@@ -50,8 +53,9 @@ async function getWeather() {
 
     //Weather data
    const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code`
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto`
     );
+
 
     if (!weatherRes.ok) throw new Error("Weather data unavailable");
 
@@ -84,6 +88,14 @@ function updateUI(data, city, country) {
     updateIcon(getWeatherIcon(weatherCode), descEl.textContent);
 
     setBackgroundImage(weatherCode);
+
+    if (data.daily?.sunrise && data.daily?.sunset) {
+      sunriseEl.textContent = formatTime(data.daily.sunrise[0]);
+      sunsetEl.textContent = formatTime(data.daily.sunset[0]);
+    }else {
+      sunriseEl.textContent = "--";
+      sunsetEl.textContent = "--";
+    }
   });
 }
 
@@ -242,4 +254,12 @@ function updateFeelsLike(){
     const feelsLikeF = currentFeelsLikeC * 9 / 5 + 32;
     feelsLikeEl.textContent = Math.round(feelsLikeF);
   }
+}
+
+function formatTime(isoString) {
+  const date = new Date(isoString);
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
