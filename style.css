@@ -38,12 +38,13 @@ body::after {
   content: "";
   position: fixed;
   inset: 0;
-   background: radial-gradient(
-    circle at top,
-    rgba(255,255,255,0.05),
-    rgba(0,0,0,0.4)
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.45),
+    rgba(0,0,0,0.65)
   );
   pointer-events: none;
+  z-index: 0;
 }
 
 body.bg-transition::before {
@@ -61,14 +62,17 @@ body.bg-transition::before {
   box-shadow: 0 20px 45px rgba(0,0,0,0.3);
    background: linear-gradient(
     rgba(255,255,255,0.18),
-    rgba(255,255,255,0.05)
+    rgba(255,255,255,0.18)
   );
+  position: relative;
+  z-index:1;
 }
 
-.app h1 {
-  margin-left: 0.75rem;
-  margin-top: 0.75rem;
+.app h1{
+  margin-left: 24px;
+  margin-top: 24px;
 }
+
 
 
 /* LEFT – WEATHER */
@@ -137,9 +141,8 @@ body.bg-transition::before {
 .search,
 .details,
 .unit-toggle,
-.hourly
- {
-  background: rgba(255,255,255,0.18);
+.hourly {
+  background:  rgba(0,0,0,0.35);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   grid-column: 2;
@@ -277,6 +280,45 @@ body.bg-transition::before {
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 1rem auto;
+}
+
+.right-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-searches {
+  padding: 1.5rem;
+}
+
+.recent-searches h3{
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin-bottom: 0.75rem;
+}
+
+.recent-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.recent-list li {
+  padding: 0.4rem;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.15);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.recent-list li:hover{
+  background: rgba(255,255,255,0.3);
+}
+
+/*Hide helper*/
+.hidden{
+  display: none;
 }
 
 @keyframes spin {
