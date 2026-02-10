@@ -111,6 +111,9 @@ function updateUI(data, city, country) {
   }
   renderRecent();
   renderHourlyForecast(data.hourly);
+  weatherContainer.scrollIntoView({
+    behaviour: "smooth"
+  });
 }
 
 function showError(message) {
@@ -178,15 +181,16 @@ function setBackgroundImage(weatherCode) {
   img.src = bg;
 
   img.onload = () => {
-    document.body.classList.add("bg-fade");
-    document.body.style.setProperty("--next-bg", `url("${bg}")`);
+    document.body.classList.add("bg-transition");
+
     document.body.style.backgroundImage = `url("${bg}")`;
 
     setTimeout(() => {
-      document.body.classList.remove("bg-fade");
+      document.body.classList.remove("bg-transition");
     }, 800);
   };
-}
+};
+
 
 // function updateTemperature(){
 //   if (currentTempC === null) return;
