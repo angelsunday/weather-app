@@ -53,7 +53,7 @@ async function getWeather() {
 
     //Weather data
    const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto`
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto,hourly=temperature_2m,weather_code`
     );
 
 
@@ -96,6 +96,8 @@ function updateUI(data, city, country) {
       sunriseEl.textContent = "--";
       sunsetEl.textContent = "--";
     }
+
+    renderHourlyForecast(data);
   });
 }
 
@@ -262,4 +264,44 @@ function formatTime(isoString) {
     hour: "2-digit",
     minute: "2-digit"
   });
+}
+
+function renderHourlyForecast(data) {
+  const hourlyGrid = document.querySelector(".hourly-grid");
+  hourlyGrid.innerHTML = "";
+
+  const now = new Date();
+  const hours = data.hourly.time;
+  const temps = data.hourly.temperature_2m;
+  const codes = data.hourly.weather_code;
+
+  let shown = 0;
+
+  for (let i=0; i < hours.length && shown < 12; i++) {
+    const hourDate = new Date(hours[i]);
+
+    if (hourDate > now) {
+      const hourEl = document.createElement("div");
+      hourEl.className = "hour";
+
+      const hour = hourDate.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      const temp = 
+        currentUnit === "C"
+          ? Math.round(temp[i])
+          : Math.round(temps[i] * 9 / 5 + 32);
+      
+          hourEl.innerHTML = `
+            <div>${hour}</div>
+            <img src="${getWeatherIcon(codes[i])}" alt="">
+            <div>${temp}°${currentUnit}</div>
+          `;
+
+          hourlyGrid.appendChild(hourEl);
+          shown++;
+    }
+  }
 }
