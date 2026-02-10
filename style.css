@@ -316,6 +316,33 @@ body.bg-transition::before {
   display: none;
 }
 
+/*7-day forecast*/
+.daily {
+  padding: 1.5rem;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(12px);
+}
+
+.daily-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.day{
+  display: grid;
+  grid-template-columns: 80px 40px 1fr;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.day img{
+  width: 28px;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
