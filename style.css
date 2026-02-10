@@ -85,13 +85,6 @@ body.bg-transition::before {
   gap: 0.75rem;
   animation: floatIn 0.6s ease both;
   grid-column: 1;
-<<<<<<< HEAD
-}
-
-.weather h1{
-  transform: translateX(6px);
-=======
->>>>>>> enhance
 }
 
 @keyframes floatIn {
@@ -341,12 +334,8 @@ body.bg-transition::before {
     align-items: center;
     text-align: center;
     padding: 2rem;
-<<<<<<< HEAD
-    grid-column: 2;
-=======
     order:1;
     min-height: 320px;
->>>>>>> enhance
   }
 
   .temp {
