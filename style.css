@@ -183,10 +183,11 @@ body.bg-transition::before {
 
 .details div {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   border-bottom: 1px solid rgba(255,255,255,0.25);
   padding-bottom: 0.3rem;
   font-size: 0.95rem;
+  gap: 4px;
 }
 
 /* UNIT TOGGLE */
