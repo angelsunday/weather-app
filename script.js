@@ -1,7 +1,10 @@
 let currentTempC = null;
 let currentUnit = "C";
 let currentFeelsLikeC = null;
+let recentSearches = JSON.parse(localStorage.getItem("recent")) || [];
 
+const hourlyGrid = document.querySelector(".hourly-grid");
+const recentListEL = document.querySelector(".recent-list");
 const sunriseEl = document.querySelector(".sunrise");
 const sunsetEl = document.querySelector(".sunset");
 
@@ -96,9 +99,18 @@ function updateUI(data, city, country) {
       sunriseEl.textContent = "--";
       sunsetEl.textContent = "--";
     }
-
-    renderHourlyForecast(data);
   });
+
+  document.querySelector(".recent-searches").classList.add("hidden");
+  document.querySelector(".hourly").classList.remove("hidden");
+
+  if (!recentSearches.includes(city)){
+    recentSearches.unshift(city);
+    recentSearches = recentSearches.slice(0 ,5);
+    localStorage.setItem("recent", JSON.stringify(recentSearches));
+  }
+  renderRecent();
+  renderHourlyForecast(data.hourly);
 }
 
 function showError(message) {
@@ -266,42 +278,42 @@ function formatTime(isoString) {
   });
 }
 
-function renderHourlyForecast(data) {
-  const hourlyGrid = document.querySelector(".hourly-grid");
+function renderRecent() {
+  recentListEL.innerHTML = "";
+  recentSearches.forEach(city => {
+    const li = document.createElement("li");
+    li.textContent = city;
+    li.onclick = () => {
+      cityInput.value = city;
+      getWeather();
+    };
+    recentListEL.appendChild(li);
+  });
+}
+
+renderRecent();
+
+function renderHourlyForecast(hourly) {
   hourlyGrid.innerHTML = "";
 
-  const now = new Date();
-  const hours = data.hourly.time;
-  const temps = data.hourly.temperature_2m;
-  const codes = data.hourly.weather_code;
+  const now = new Date().getHours();
 
-  let shown = 0;
+  for (let i = 0; i < hourly.time.length; i++) {
+    const hourDate = new Date(hourly.time[i]);
+    const hour = hourDate.getHours();
 
-  for (let i=0; i < hours.length && shown < 12; i++) {
-    const hourDate = new Date(hours[i]);
-
-    if (hourDate > now) {
+    if (hour >= now && hour < now + 12) {
       const hourEl = document.createElement("div");
       hourEl.className = "hour";
 
-      const hour = hourDate.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+      hourEl.innerHTML = `
+        <div>${hour}:00</div>
+        <img src="${getWeatherIcon(hourly.weather_code[i])}" alt="">
+        <div>${Math.round(hourly.temperature_2m[i])}°</div>
+      `;
 
-      const temp = 
-        currentUnit === "C"
-          ? Math.round(temp[i])
-          : Math.round(temps[i] * 9 / 5 + 32);
-      
-          hourEl.innerHTML = `
-            <div>${hour}</div>
-            <img src="${getWeatherIcon(codes[i])}" alt="">
-            <div>${temp}°${currentUnit}</div>
-          `;
-
-          hourlyGrid.appendChild(hourEl);
-          shown++;
+      hourlyGrid.appendChild(hourEl);
     }
   }
 }
+
