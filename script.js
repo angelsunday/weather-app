@@ -1,5 +1,5 @@
 let currentTempC = null;
-let currentUnit = "C";
+let currentUnit = localStorage.getItem("unit") || "C";
 let currentFeelsLikeC = null;
 let recentSearches = JSON.parse(localStorage.getItem("recent")) || [];
 
@@ -7,7 +7,6 @@ const hourlyGrid = document.querySelector(".hourly-grid");
 const recentListEL = document.querySelector(".recent-list");
 const sunriseEl = document.querySelector(".sunrise");
 const sunsetEl = document.querySelector(".sunset");
-
 const cityInput = document.getElementById("cityInput");
 const searchBtn = document.getElementById("searchBtn");
 
@@ -18,32 +17,26 @@ const humidityEl = document.querySelector(".humidity");
 const windEl = document.querySelector(".wind");
 const iconEl = document.querySelector(".weather-icon");
 const loadingEl = document.querySelector(".loading");
+const feelsLikeEl = document.querySelector(".feels-like");
 
 const celsiusBtn = document.getElementById("celsiusBtn");
 const fahrenheitBtn = document.getElementById("fahrenheitBtn");
-
 const weatherContainer = document.querySelector(".weather");
-const feelsLikeEl = document.querySelector(".feels-like");
 
 celsiusBtn.addEventListener("click", () => setUnit("C"));
 fahrenheitBtn.addEventListener("click", () => setUnit("F"));
-
 searchBtn.addEventListener("click", getWeather);
-cityInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") getWeather();
-});
+cityInput.addEventListener("keypress", (e) => { if (e.key === "Enter") getWeather(); });
 
 async function getWeather() {
   const city = cityInput.value.trim();
   if (!city) return;
 
-  loadingEl.style.display = "block"; //show loading
-  try {
-    //geocoding
-    const geoRes = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`
-    );
+  loadingEl.style.display = "block";
 
+  try {
+    // Geocoding
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`);
     if (!geoRes.ok) throw new Error("Location not found");
 
     const geoData = await geoRes.json();
@@ -51,15 +44,10 @@ async function getWeather() {
 
     const { latitude, longitude, name, country } = geoData.results[0];
 
-   
-   
-
-    //Weather data
-   const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto,hourly=temperature_2m,weather_code`
+    // Weather data
+    const weatherRes = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto`
     );
-
-
     if (!weatherRes.ok) throw new Error("Weather data unavailable");
 
     const weatherData = await weatherRes.json();
@@ -67,35 +55,33 @@ async function getWeather() {
 
   } catch (error) {
     showError(error.message);
-  }finally {
-    loadingEl.style.display="none"; //hide loading
+  } finally {
+    loadingEl.style.display = "none";
   }
 }
 
 function updateUI(data, city, country) {
-  const weatherCode = data.current.weather_code;
-
+  const weatherCode = data.current_weather.weathercode;
   animateWeatherUpdate(() => {
     cityEl.textContent = `${city}, ${country}`;
-    
-    currentTempC = data.current.temperature_2m;
-    currentFeelsLikeC = data.current.apparent_temperature;
+
+    currentTempC = data.current_weather.temperature;
+    currentFeelsLikeC = data.current_weather.apparent_temperature || currentTempC;
 
     updateTemperature();
     updateFeelsLike();
-    
+
     descEl.textContent = getWeatherDescription(weatherCode);
-    humidityEl.textContent = data.current.relative_humidity_2m;
-    windEl.textContent = Math.round(data.current.wind_speed_10m);
+    humidityEl.textContent = `${data.current_weather.relativehumidity || "--"}%`;
+    windEl.textContent = `${Math.round(data.current_weather.windspeed || 0)} km/h`;
 
     updateIcon(getWeatherIcon(weatherCode), descEl.textContent);
-
     setBackgroundImage(weatherCode);
 
     if (data.daily?.sunrise && data.daily?.sunset) {
       sunriseEl.textContent = formatTime(data.daily.sunrise[0]);
       sunsetEl.textContent = formatTime(data.daily.sunset[0]);
-    }else {
+    } else {
       sunriseEl.textContent = "--";
       sunsetEl.textContent = "--";
     }
@@ -104,11 +90,12 @@ function updateUI(data, city, country) {
   document.querySelector(".recent-searches").classList.add("hidden");
   document.querySelector(".hourly").classList.remove("hidden");
 
-  if (!recentSearches.includes(city)){
+  if (!recentSearches.includes(city)) {
     recentSearches.unshift(city);
-    recentSearches = recentSearches.slice(0 ,5);
+    recentSearches = recentSearches.slice(0, 5);
     localStorage.setItem("recent", JSON.stringify(recentSearches));
   }
+
   renderRecent();
   renderHourlyForecast(data.hourly);
 }
@@ -116,10 +103,10 @@ function updateUI(data, city, country) {
 function showError(message) {
   cityEl.textContent = "Error";
   tempEl.textContent = "-- °C";
-  feelsLikeEl.textContent = "--";
+  feelsLikeEl.textContent = "--°";
   descEl.textContent = message;
-  humidityEl.textContent = "--";
-  windEl.textContent = "--";
+  humidityEl.textContent = "--%";
+  windEl.textContent = "-- km/h";
   iconEl.src = "";
 }
 
@@ -143,27 +130,24 @@ function getWeatherDescription(code) {
     80: "Rain showers",
     95: "Thunderstorm"
   };
-
   return map[code] || "Unknown Weather";
 }
 
-function getWeatherIcon(weatherCode) {
-  if (weatherCode === 0) return "assets/icons/clear.png";
-  if (weatherCode <= 2) return "assets/icons/overcast.png";
-  if (weatherCode === 3) return "assets/icons/cloudy.png";
-  if (weatherCode === 45 || weatherCode === 48) return "assets/icons/fog.png";
-  if (weatherCode >= 51 && weatherCode <= 55) return "assets/icons/drizzle.png";
-  if (weatherCode >= 61 && weatherCode <= 65) return "assets/icons/rain.png";
-  if (weatherCode >= 71 && weatherCode <= 75) return "assets/icons/snow.png";
-  if (weatherCode >= 80 && weatherCode <= 82) return "assets/icons/rain.png";
-  if (weatherCode >= 95) return "assets/icons/thunder.png";
-
+function getWeatherIcon(code) {
+  if (code === 0) return "assets/icons/clear.png";
+  if (code <= 2) return "assets/icons/overcast.png";
+  if (code === 3) return "assets/icons/cloudy.png";
+  if (code === 45 || code === 48) return "assets/icons/fog.png";
+  if (code >= 51 && code <= 55) return "assets/icons/drizzle.png";
+  if (code >= 61 && code <= 65) return "assets/icons/rain.png";
+  if (code >= 71 && code <= 75) return "assets/icons/snow.png";
+  if (code >= 80 && code <= 82) return "assets/icons/rain.png";
+  if (code >= 95) return "assets/icons/thunder.png";
   return "assets/icons/unknown.png";
 }
 
-//Weather Background
 function setBackgroundImage(weatherCode) {
-  let bg = "assets/backgrounds/default.jpg";
+  let bg = "assets/images/default.jpg";
 
   if (weatherCode === 0) bg = "assets/images/sunny.jpg";
   else if (weatherCode <= 2) bg = "assets/images/overcast.jpg";
@@ -176,44 +160,25 @@ function setBackgroundImage(weatherCode) {
 
   const img = new Image();
   img.src = bg;
-
   img.onload = () => {
     document.body.classList.add("bg-fade");
     document.body.style.setProperty("--next-bg", `url("${bg}")`);
     document.body.style.backgroundImage = `url("${bg}")`;
-
-    setTimeout(() => {
-      document.body.classList.remove("bg-fade");
-    }, 800);
+    setTimeout(() => document.body.classList.remove("bg-fade"), 800);
   };
 }
-
-// function updateTemperature(){
-//   if (currentTempC === null) return;
-
-//   if (currentUnit === "C") {
-//     tempEl.textContent = `${Math.round(currentTempC)} °C`;
-//   } else {
-//     const tempF = currentTempC * 9 / 5 + 32;
-//     tempEl.textContent = `${Math.round(tempF)}`;
-//   }
-// }
-
-currentUnit = localStorage.getItem("unit") || "C";
 
 function setUnit(unit) {
   currentUnit = unit;
   localStorage.setItem("unit", unit);
   updateTemperature();
   updateFeelsLike();
-
   celsiusBtn.classList.toggle("active", unit === "C");
   fahrenheitBtn.classList.toggle("active", unit === "F");
 }
 
-function animateWeatherUpdate(callback){
+function animateWeatherUpdate(callback) {
   weatherContainer.classList.add("fade-out");
-
   setTimeout(() => {
     callback();
     weatherContainer.classList.remove("fade-out");
@@ -221,37 +186,33 @@ function animateWeatherUpdate(callback){
   }, 300);
 }
 
-function animateNumber(el, start, end, unit = ""){
+function animateNumber(el, start, end, unit = "") {
   const duration = 400;
   const startTime = performance.now();
-
   function update(time) {
     const progress = Math.min((time - startTime) / duration, 1);
     const value = Math.round(start + (end - start) * progress);
     el.textContent = `${value}${unit}`;
-
     if (progress < 1) requestAnimationFrame(update);
   }
-
   requestAnimationFrame(update);
 }
 
 function updateTemperature() {
   if (currentTempC === null) return;
-
-  const target =
-    currentUnit === "C"
-      ? Math.round(currentTempC)
-      : Math.round(currentTempC * 9 / 5 + 32);
-
+  const target = currentUnit === "C" ? Math.round(currentTempC) : Math.round(currentTempC * 9 / 5 + 32);
   const current = parseInt(tempEl.textContent) || target;
-
   animateNumber(tempEl, current, target, `°${currentUnit}`);
 }
 
-function updateIcon(src, alt){
-  iconEl.classList.add("fade");
+function updateFeelsLike() {
+  if (currentFeelsLikeC === null) return;
+  const value = currentUnit === "C" ? Math.round(currentFeelsLikeC) : Math.round(currentFeelsLikeC * 9 / 5 + 32);
+  feelsLikeEl.textContent = `${value}°`;
+}
 
+function updateIcon(src, alt) {
+  iconEl.classList.add("fade");
   setTimeout(() => {
     iconEl.src = src;
     iconEl.alt = alt;
@@ -259,23 +220,9 @@ function updateIcon(src, alt){
   }, 200);
 }
 
-function updateFeelsLike(){
-  if(currentFeelsLikeC === null) return;
-
-  if(currentUnit === "C") {
-    feelsLikeEl.textContent = Math.round(currentFeelsLikeC);
-  } else {
-    const feelsLikeF = currentFeelsLikeC * 9 / 5 + 32;
-    feelsLikeEl.textContent = Math.round(feelsLikeF);
-  }
-}
-
 function formatTime(isoString) {
   const date = new Date(isoString);
-  return date.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
 function renderRecent() {
@@ -283,37 +230,29 @@ function renderRecent() {
   recentSearches.forEach(city => {
     const li = document.createElement("li");
     li.textContent = city;
-    li.onclick = () => {
-      cityInput.value = city;
-      getWeather();
-    };
+    li.onclick = () => { cityInput.value = city; getWeather(); };
     recentListEL.appendChild(li);
   });
 }
 
-renderRecent();
-
 function renderHourlyForecast(hourly) {
   hourlyGrid.innerHTML = "";
-
   const now = new Date().getHours();
 
   for (let i = 0; i < hourly.time.length; i++) {
     const hourDate = new Date(hourly.time[i]);
     const hour = hourDate.getHours();
-
     if (hour >= now && hour < now + 12) {
       const hourEl = document.createElement("div");
       hourEl.className = "hour";
-
       hourEl.innerHTML = `
         <div>${hour}:00</div>
         <img src="${getWeatherIcon(hourly.weather_code[i])}" alt="">
         <div>${Math.round(hourly.temperature_2m[i])}°</div>
       `;
-
       hourlyGrid.appendChild(hourEl);
     }
   }
 }
 
+renderRecent();

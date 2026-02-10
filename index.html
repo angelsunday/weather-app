@@ -1,85 +1,97 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Weather App</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <main class="app">
+<html lang="en">
+<head>
+  <!-- META -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- TITLE -->
+  <title>Weather App</title>
+
+  <!-- STYLES -->
+  <link rel="stylesheet" href="style.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+
+<body>
+  <main class="app">
+    
+    <!-- HEADER -->
+    <header class="app-header">
       <h1>Weather App</h1>
-      <p class="loading" style="display: none;">Loading...</p>
+      <p class="loading hidden">Loading...</p>
+    </header>
 
-      <!--SEARCH-->
-      <div class="search">
-        <input
-          type="text"
-          id="cityInput"
-          placeholder="Enter city name"
-          autocomplete="off"
-        />
-        <button id="searchBtn">Search</button>
+    <!-- SEARCH -->
+    <section class="search">
+      <label for="cityInput" class="visually-hidden">City name</label>
+      <input
+        type="text"
+        id="cityInput"
+        placeholder="Enter city name"
+        autocomplete="off"
+      />
+      <button id="searchBtn" type="button">Search</button>
+    </section>
+
+    <!-- WEATHER RESULT -->
+    <section class="weather" id="weather">
+      
+      <!-- CITY -->
+      <h2 class="city">--</h2>
+
+      <!-- ICON -->
+      <img
+        class="weather-icon"
+        src="assets/icons/unknown.png"
+        alt="Current weather icon"
+      />
+
+      <!-- TEMPERATURE -->
+      <p class="temp">--°C</p>
+
+      <!-- UNIT TOGGLE -->
+      <div class="unit-toggle">
+        <button id="celsiusBtn" class="active" type="button">°C</button>
+        <button id="fahrenheitBtn" type="button">°F</button>
       </div>
-      <!--WEATHER RESULT-->
-      <section class="weather" id="weather">
-        
-        <!--CITY-->
-        <h2 class="city">--</h2>
-        
-        <img class="weather-icon" src="assets/icons/unknown.png" alt="Weather icon">
 
-        <!--TEMPERATURE-->
-        <p class="temp">--°C</p>
-        <div class="unit-toggle">
-          <button id="celsiusBtn" class="active">°C</button>
-          <button id="fahrenheitBtn">°F</button>
+      <!-- DESCRIPTION -->
+      <p class="description">Enter a city to see the weather</p>
+
+      <!-- EXTRA INFO -->
+      <div class="details">
+        <div>Feels like: <span class="feels-like">--</span></div>
+        <div>Humidity: <span class="humidity">--</span></div>
+        <div>Wind: <span class="wind">--</span>
         </div>
+        <div>Sunrise: <span class="sunrise">--</span></div>
+        <div>Sunset: <span class="sunset">--</span></div>
+      </div>
+    </section>
 
-        <!--DESCRIPTION-->
-        <p class="description">Enter a city to see the weather</p>
-
-        <!--EXTRA INFO-->
-       <div class="details">
-          <div>
-            Feels like: <span class="feels-like">--</span>°
-          </div>
-          
-          <div>
-            Humidity: <span class="humidity">--</span>%
-          </div>
-          
-          <div>
-            Wind: <span class="wind">--</span> km/h
-          </div>
-
-          <div>
-            Sunrise: <span class="sunrise">--</span>
-          </div>
-
-          <div>
-            Sunset: <span class="sunset">--</span>
-          </div>
-
-          <div class="hourly-grid"></div>
-        </div>
+    <!-- RIGHT PANEL -->
+    <aside class="right-panel">
+      
+      <!-- RECENT SEARCHES -->
+      <section class="recent-searches">
+        <h3>Recent searches</h3>
+        <ul class="recent-list"></ul>
       </section>
-      <aside class="right-panel">
 
-          <div class="recent-searches">
-            <h3>Recent searches</h3>
-            <ul class="recent-list"></ul>
-          </div>
+      <!-- HOURLY FORECAST -->
+      <section class="hourly">
+        <h3>Next hours</h3>
+        <div class="hourly-grid"></div>
+      </section>
 
-          <div class="hourly">
-            <h3>Next hours</h3>
-            <div class="hourly-grid"></div>
-          </div>
-        </aside>
-    </main>
+    </aside>
+  </main>
 
-    <!--JAVASCRIPT-->
-    <script src="script.js"></script>
-  </body>
+  <!-- JAVASCRIPT -->
+  <script src="script.js"></script>
+</body>
 </html>
