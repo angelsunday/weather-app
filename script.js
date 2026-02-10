@@ -3,6 +3,7 @@ let currentUnit = "C";
 let currentFeelsLikeC = null;
 let recentSearches = JSON.parse(localStorage.getItem("recent")) || [];
 
+const dailyGrid = document.querySelector(".daily-grid");
 const hourlyGrid = document.querySelector(".hourly-grid");
 const recentListEL = document.querySelector(".recent-list");
 const sunriseEl = document.querySelector(".sunrise");
@@ -33,6 +34,27 @@ cityInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") getWeather();
 });
 
+async function loadWeatherByCoords(lat, lon) {
+  loadingEl.style.display = "block";
+
+
+  try {
+  const weatherRes = await fetch(
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min,weather_code&timezone=auto`
+  );
+
+  if (!weatherRes.ok) throw new Error("Weather data unavailable");
+
+  const data = await weatherRes.json();
+
+  updateUI(data, "Your Location", "");
+  } catch (err){
+    showError("Location access denied");
+  }finally{
+    loadingEl.style.display = "none";
+  }
+}
+
 async function getWeather() {
   const city = cityInput.value.trim();
   if (!city) return;
@@ -56,7 +78,7 @@ async function getWeather() {
 
     //Weather data
    const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto`
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto,temperature_2m_max,temperature_2m_min,weather_code`
     );
 
 
@@ -111,6 +133,8 @@ function updateUI(data, city, country) {
   }
   renderRecent();
   renderHourlyForecast(data.hourly);
+  renderDailyForecast(data.daily);
+
   weatherContainer.scrollIntoView({
     behaviour: "smooth"
   });
@@ -320,4 +344,49 @@ function renderHourlyForecast(hourly) {
     }
   }
 }
+
+function renderDailyForecast(daily){
+  dailyGrid.innerHTML = "";
+
+  for (let i = 0; i < daily.time.length; i++){
+    const date = new Date(daily.time[i]);
+
+    const dayName = date.toLocaleDateString([], {
+      weekday: "short"
+    });
+
+    const max = Math.round(daily.temperature_2m_max[i]);
+    const min = Math.round(daily.temperature_2m_min[i]);
+
+    const icon = getWeatherIcon(daily.weather_code[i]);
+
+    const dayEl = document.createElement("div");
+    dayEl.className = "day";
+
+    dayEl.innerHTML = `
+      <div>${dayName}</div>
+      <img src="${icon}" alt="">
+      <div>${min}° / ${max}°</div>
+      `;
+
+      dailyGrid.appendChild(dayEl);
+  }
+}
+
+window.addEventListener("load", () => {
+  if("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        loadWeatherByCoords(
+          pos.coords.latitude,
+          pos.coords.longitude
+        );
+      },
+      () => {
+        console.log("Geolocation denied");
+      }
+    );
+  }
+});
+
 
