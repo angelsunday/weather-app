@@ -5,6 +5,7 @@ let recentSearches = JSON.parse(localStorage.getItem("recent")) || [];
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
 // ELEMENTS
+const wearEl = document.querySelector(".wear-suggestion");
 const dailyGrid = document.querySelector(".daily-grid");
 const hourlyGrid = document.querySelector(".hourly-grid");
 const recentListEL = document.querySelector(".recent-list");
@@ -173,6 +174,10 @@ function updateUI(data, city, country) {
       data.hourly?.relativehumidity_2m?.[hourIndex] ?? "--";
     windEl.textContent = Math.round(data.current_weather.windspeed || 0);
 
+    const wear = getWearSuggestion(currentTempC, weatherCode);
+    document.querySelector(".wear-icon").textContent = wear.icon;
+    document.querySelector(".wear-text").textContent = "What to wear: " + wear.text;
+
     updateIcon(getWeatherIcon(weatherCode), descEl.textContent);
     setBackgroundImage(weatherCode);
 
@@ -334,6 +339,35 @@ function renderHourlyForecast(hourly) {
     }
   }
 }
+
+//WEAR SUGGESTION
+function getWearSuggestion(tempC, weatherCode){
+  if (tempC === null) return {text: "--", icon: "❓"};
+
+   let icon = "👕";
+   let text = "";
+
+   if (tempC <= 0) { text = "Heavy coat, scarf, gloves"; icon = "🧥🧣🧤"; }
+    else if (tempC <= 10) { text = "Coat or jacket"; icon = "🧥"; }
+    else if (tempC <= 20) { text = "Sweater or light jacket"; icon = "🧶🧥"; }
+    else if (tempC <= 30) { text = "T-shirt and pants/shorts"; icon = "👕👖"; }
+    else { text = "Shorts and tank top"; icon = "🩳👕"; }
+
+
+  //Rain-Snow
+    if ([45,48,51,53,55,61,63,65,80,81,82].includes   (weatherCode)) {
+      text += ", bring an umbrella or raincoat"; icon = "☔🧥"; 
+      } else if ([71,73,75].includes(weatherCode)) {
+      text += ", wear warm boots"; icon = "🥾🧥"; 
+    }
+
+  //sunny
+  if (weatherCode === 0) { text += ", sunglasses recommended"; icon += "🕶️"; }
+
+  return { text, icon };
+}
+
+
 
 // DAILY FORECAST
 function renderDailyForecast(daily) {
