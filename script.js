@@ -76,9 +76,10 @@ async function loadWeatherByCoords(lat, lon) {
       return;
     }
 
-    const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode,sunrise,sunset&timezone=auto`
+   const weatherRes = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode,relativehumidity_2m&daily=temperature_2m_max,temperature_2m_min,weathercode,sunrise,sunset&timezone=auto`
     );
+
 
     if (!weatherRes.ok) throw new Error("Weather data unavailable");
 
@@ -133,8 +134,9 @@ async function getWeather() {
     }
 
     const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode,sunrise,sunset&timezone=auto`
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=temperature_2m,weathercode,relativehumidity_2m&daily=temperature_2m_max,temperature_2m_min,weathercode,sunrise,sunset&timezone=auto`
     );
+
 
     if (!weatherRes.ok) throw new Error("Weather data unavailable");
 
@@ -166,7 +168,9 @@ function updateUI(data, city, country) {
     updateFeelsLike();
 
     descEl.textContent = getWeatherDescription(weatherCode);
-    humidityEl.textContent = data.current_weather.relativehumidity || "--";
+    const hourIndex = 0;
+      humidityEl.textContent =
+      data.hourly?.relativehumidity_2m?.[hourIndex] ?? "--";
     windEl.textContent = Math.round(data.current_weather.windspeed || 0);
 
     updateIcon(getWeatherIcon(weatherCode), descEl.textContent);
