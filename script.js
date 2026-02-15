@@ -5,6 +5,7 @@ let recentSearches = JSON.parse(localStorage.getItem("recent")) || [];
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
 // ELEMENTS
+const wearEl = document.querySelector(".wear-suggestion");
 const dailyGrid = document.querySelector(".daily-grid");
 const hourlyGrid = document.querySelector(".hourly-grid");
 const recentListEL = document.querySelector(".recent-list");
@@ -29,8 +30,68 @@ const weatherContainer = document.querySelector(".weather");
 celsiusBtn.addEventListener("click", () => setUnit("C"));
 fahrenheitBtn.addEventListener("click", () => setUnit("F"));
 searchBtn.addEventListener("click", getWeather);
-cityInput.addEventListener("keypress", (e) => { if (e.key === "Enter") getWeather(); });
+cityInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") getWeather();
+});
 
+currentUnit = localStorage.getItem("unit") || "C";
+
+// SET UNIT
+function setUnit(unit) {
+  currentUnit = unit;
+  localStorage.setItem("unit", unit);
+  updateTemperature();
+  updateFeelsLike();
+
+  celsiusBtn.classList.toggle("active", unit === "C");
+  fahrenheitBtn.classList.toggle("active", unit === "F");
+}
+
+// LOAD WEATHER BY COORDS (GEOLOCATION)
+async function loadWeatherByCoords(lat, lon) {
+  loadingEl.classList.remove("hidden");
+
+  try {
+    const cacheKey = `weather_${lat}_${lon}`;
+    const cachedData = getCachedWeather(cacheKey);
+    if (cachedData) {
+      updateUI(cachedData, cachedData.city || "Your Location", cachedData.country || "");
+      loadingEl.classList.add("hidden");
+      return;
+    }
+
+   const weatherRes = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode,relativehumidity_2m&daily=temperature_2m_max,temperature_2m_min,weathercode,sunrise,sunset&timezone=auto`
+    );
+
+
+    if (!weatherRes.ok) throw new Error("Weather data unavailable");
+
+    const data = await weatherRes.json();
+
+    // current_weather exists, create fallback for apparent_temperature
+    if (!data.current_weather.apparent_temperature) {
+      data.current_weather.apparent_temperature = data.current_weather.temperature;
+    }
+
+    // Set city/country fallback for geolocation
+    const locationName = data.timezone?.split("/")[1]?.replace("_", " ") || "Your Location";
+    data.city = locationName;
+    data.country = "";
+
+    setCachedWeather(cacheKey, data);
+
+    updateUI(data, data.city, data.country);
+
+  } catch (err) {
+    showError("Location access denied");
+  } finally {
+    loadingEl.classList.add("hidden");
+  }
+}
+
+
+// SEARCH BY CITY NAME
 async function getWeather() {
   const city = cityInput.value.trim();
   if (!city) return;
@@ -49,8 +110,10 @@ async function getWeather() {
 
     // Weather data
     const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto`
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=temperature_2m,weathercode,relativehumidity_2m&daily=temperature_2m_max,temperature_2m_min,weathercode,sunrise,sunset&timezone=auto`
     );
+
+
     if (!weatherRes.ok) throw new Error("Weather data unavailable");
 
     const data = await weatherRes.json();
@@ -80,8 +143,14 @@ function updateUI(data, city, country) {
     updateFeelsLike();
 
     descEl.textContent = getWeatherDescription(weatherCode);
-    humidityEl.textContent = `${data.current_weather.relativehumidity || "--"}%`;
-    windEl.textContent = `${Math.round(data.current_weather.windspeed || 0)} km/h`;
+    const hourIndex = 0;
+      humidityEl.textContent =
+      data.hourly?.relativehumidity_2m?.[hourIndex] ?? "--";
+    windEl.textContent = Math.round(data.current_weather.windspeed || 0);
+
+    const wear = getWearSuggestion(currentTempC, weatherCode);
+    document.querySelector(".wear-icon").textContent = wear.icon;
+    document.querySelector(".wear-text").textContent = "What to wear: " + wear.text;
 
     updateIcon(getWeatherIcon(weatherCode), descEl.textContent);
     setBackgroundImage(weatherCode);
@@ -262,4 +331,61 @@ function renderHourlyForecast(hourly) {
   }
 }
 
+//WEAR SUGGESTION
+function getWearSuggestion(tempC, weatherCode){
+  if (tempC === null) return {text: "--", icon: "❓"};
+
+   let icon = "👕";
+   let text = "";
+
+   if (tempC <= 0) { text = "Heavy coat, scarf, gloves"; icon = "🧥🧣🧤"; }
+    else if (tempC <= 10) { text = "Coat or jacket"; icon = "🧥"; }
+    else if (tempC <= 20) { text = "Sweater or light jacket"; icon = "🧶🧥"; }
+    else if (tempC <= 30) { text = "T-shirt and pants/shorts"; icon = "👕👖"; }
+    else { text = "Shorts and tank top"; icon = "🩳👕"; }
+
+
+  //Rain-Snow
+    if ([45,48,51,53,55,61,63,65,80,81,82].includes   (weatherCode)) {
+      text += ", bring an umbrella or raincoat"; icon = "☔🧥"; 
+      } else if ([71,73,75].includes(weatherCode)) {
+      text += ", wear warm boots"; icon = "🥾🧥"; 
+    }
+
+  //sunny
+  if (weatherCode === 0) { text += ", sunglasses recommended"; icon += "🕶️"; }
+
+  return { text, icon };
+}
+
+
+
+// DAILY FORECAST
+function renderDailyForecast(daily) {
+  if (!daily) return;
+  dailyGrid.innerHTML = "";
+  for (let i = 0; i < daily.time.length; i++) {
+    const date = new Date(daily.time[i]);
+    const dayName = date.toLocaleDateString([], { weekday: "short" });
+    const min = Math.round(daily.temperature_2m_min[i]);
+    const max = Math.round(daily.temperature_2m_max[i]);
+    const icon = getWeatherIcon(daily.weathercode[i]);
+    const dayEl = document.createElement("div");
+    dayEl.className = "day";
+    dayEl.innerHTML = `<div>${dayName}</div><img src="${icon}" alt=""><div>${min}° / ${max}°</div>`;
+    dailyGrid.appendChild(dayEl);
+  }
+}
+
+// ON LOAD GEOLOCATION
+window.addEventListener("load", () => {
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      pos => loadWeatherByCoords(pos.coords.latitude, pos.coords.longitude),
+      () => console.log("Geolocation denied")
+    );
+  }
+});
+
+// INITIAL RENDER
 renderRecent();
