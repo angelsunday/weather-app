@@ -1,0 +1,30 @@
+[33m51ffc17[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: commit: g
+[33m4a2a576[m HEAD@{1}: commit (merge): Merge branch 'main' of https://github.com/angelsunday/weather-app
+[33m4be36f4[m HEAD@{2}: commit: Conflict resolution
+[33m6b244a6[m HEAD@{3}: pull origin main: updating HEAD
+[33m6b244a6[m HEAD@{4}: checkout: moving from main to main
+[33m6b244a6[m HEAD@{5}: checkout: moving from main to main
+[33m6b244a6[m HEAD@{6}: commit (merge): Merge branch 'enhance'
+[33md7b4659[m HEAD@{7}: pull origin main: Fast-forward
+[33m4d1f02b[m HEAD@{8}: checkout: moving from enhance to main
+[33m4707f59[m[33m ([m[1;31morigin/enhance[m[33m, [m[1;32menhance[m[33m)[m HEAD@{9}: commit: changes
+[33m5ad40ba[m HEAD@{10}: commit (merge): Merge branch 'enhance' of https://github.com/angelsunday/weather-app into enhance
+[33m4cde017[m HEAD@{11}: commit: Changes I did at work
+[33m4d1f02b[m HEAD@{12}: checkout: moving from main to enhance
+[33m4d1f02b[m HEAD@{13}: merge enhance: Fast-forward
+[33m6091522[m HEAD@{14}: checkout: moving from enhance to main
+[33m4d1f02b[m HEAD@{15}: commit: Sunrise/sunset
+[33m6091522[m HEAD@{16}: checkout: moving from enhance to enhance
+[33m6091522[m HEAD@{17}: checkout: moving from main to enhance
+[33m6091522[m HEAD@{18}: merge enhance: Fast-forward
+[33m940e9ad[m HEAD@{19}: checkout: moving from enhance to main
+[33m6091522[m HEAD@{20}: commit: Smooth transition
+[33m940e9ad[m HEAD@{21}: checkout: moving from enhance to enhance
+[33m940e9ad[m HEAD@{22}: checkout: moving from main to enhance
+[33m940e9ad[m HEAD@{23}: merge enhance: Fast-forward
+[33m550af5f[m HEAD@{24}: checkout: moving from enhance to main
+[33m940e9ad[m HEAD@{25}: commit: Layout modification
+[33m550af5f[m HEAD@{26}: checkout: moving from main to enhance
+[33m550af5f[m HEAD@{27}: commit: additional weather info: Feels like
+[33m6198477[m HEAD@{28}: commit: Responsive Improvments
+[33m6b97d16[m HEAD@{29}: clone: from https://github.com/angelsunday/weather-app.git
