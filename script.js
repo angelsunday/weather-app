@@ -96,8 +96,6 @@ async function getWeather() {
   const city = cityInput.value.trim();
   if (!city) return;
 
-  loadingEl.style.display = "block";
-
   try {
     // Geocoding
     const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`);
@@ -107,6 +105,8 @@ async function getWeather() {
     if (!geoData.results || geoData.results.length === 0) throw new Error("City not found");
 
     const { latitude, longitude, name, country } = geoData.results[0];
+
+    const cacheKey = `weather_${latitude}_${longitude}`;
 
     // Weather data
     const weatherRes = await fetch(
@@ -129,6 +129,31 @@ async function getWeather() {
     loadingEl.style.display = "none";
   }
 }
+
+function getCachedWeather(key) {
+  const cached = localStorage.getItem(key);
+  if (!cached) return null;
+
+  const { data, timestamp } = JSON.parse(cached);
+
+  if (Date.now() - timestamp > CACHE_DURATION) {
+    localStorage.removeItem(key);
+    return null;
+  }
+
+  return data;
+}
+
+function setCachedWeather(key, data) {
+  localStorage.setItem(
+    key,
+    JSON.stringify({
+      data,
+      timestamp: Date.now()
+    })
+  );
+}
+
 
 // UPDATE UI
 function updateUI(data, city, country) {
@@ -175,17 +200,10 @@ function updateUI(data, city, country) {
 
   renderRecent();
   renderHourlyForecast(data.hourly);
+  renderDailyForecast(data.daily);
+
 }
 
-function showError(message) {
-  cityEl.textContent = "Error";
-  tempEl.textContent = "-- °C";
-  feelsLikeEl.textContent = "--°";
-  descEl.textContent = message;
-  humidityEl.textContent = "--%";
-  windEl.textContent = "-- km/h";
-  iconEl.src = "";
-}
 
 // WEATHER DESCRIPTIONS & ICONS
 function getWeatherDescription(code) {
@@ -229,17 +247,8 @@ function setBackgroundImage(weatherCode) {
   img.onload = () => {
     document.body.classList.add("bg-transition");
     document.body.style.backgroundImage = `url("${bg}")`;
-    setTimeout(() => document.body.classList.remove("bg-fade"), 800);
+    setTimeout(() => document.body.classList.remove("bg-transition"), 800);
   };
-}
-
-function setUnit(unit) {
-  currentUnit = unit;
-  localStorage.setItem("unit", unit);
-  updateTemperature();
-  updateFeelsLike();
-  celsiusBtn.classList.toggle("active", unit === "C");
-  fahrenheitBtn.classList.toggle("active", unit === "F");
 }
 
 function animateWeatherUpdate(callback) {

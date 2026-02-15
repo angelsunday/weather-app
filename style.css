@@ -314,38 +314,7 @@ margin: 1rem auto;
 }
 
 .wear-suggestion:hover {
-  background: rgbas(255, 255, 255, 0.25);
-  transform: translateY(-2px);
-}
-
-.wear-icon {
-  font-size: 1.5rem;
-  transition: transform 0.3s ease;
-}
-
-.wear-suggestion:hover .wear-icon {
-  transform: scale(1.3) rotate(10deg);
-}
-
-.wear-text {
-  flex: 1;
-}
-
-.wear-suggestion {
-  display:flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 0.8rem 1rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 500;
-  margin-top: 1rem;
-  transition: all 0.3s ease;
-}
-
-.wear-suggestion:hover {
-  background: rgbas(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.25);
   transform: translateY(-2px);
 }
 
@@ -405,6 +374,35 @@ background: rgba(255, 255, 255, 0.3);
 display: none;
 }
 
+/*-----------------DAILY GRID----------------*/
+.daily {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0,35);
+  backdrop-filter: blur(12px);
+}
+
+.daily-grid {
+  display: flex;
+  flex-direction: column;   /* vertical */
+  gap: 0.75rem;
+}
+
+.day {
+ display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.8rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.daily-grid img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
 /* ---------------- MOBILE ---------------- */
 
 @media (max-width: 768px) {
@@ -440,5 +438,9 @@ min-height: 48px;
 
 .hour {
 min-width: 64px;
+}
+
+.daily-grid {
+  grid-template-columns: 1fr;
 }
 }
